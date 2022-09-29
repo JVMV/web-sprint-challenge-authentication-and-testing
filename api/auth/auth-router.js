@@ -1,5 +1,6 @@
 const router = require('express').Router();
-const db = require('../../data/dbConfig')
+const db = require('../../data/dbConfig');
+const bcrypt = require('bcryptjs');
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -35,8 +36,17 @@ router.post('/register', async (req, res) => {
   */
 });
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body
+  const check = await db('users').where('username', username)
+  if(check) {
+    const pwCheck = check.password === password ? true : false/* uses bcrpyt compare */
+    if(pwCheck) {
+      res.status(200).json({ message: 'Logged in' })
+    } else {
+      res.status(401).json({ message: 'Login failed' })
+    }
+  }
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
