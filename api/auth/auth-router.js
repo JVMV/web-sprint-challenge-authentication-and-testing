@@ -1,7 +1,13 @@
 const router = require('express').Router();
+const db = require('../../data/dbConfig')
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+router.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+
+  await db('users').insert({username: username, password: password})  
+  const [registered] = await db('users').where('username', username)
+  res.status(201).json(registered)
+
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
