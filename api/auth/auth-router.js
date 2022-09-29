@@ -1,13 +1,22 @@
 const router = require('express').Router();
 const db = require('../../data/dbConfig');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const secret = 'a secret that would usually be in an .env file'
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
-
-  await db('users').insert({username: username, password: password})  
-  const [registered] = await db('users').where('username', username)
-  res.status(201).json(registered)
+  if(username && password) {
+    const [pCheck] = await db('users').where('username', username)
+    if(pCheck) {
+      res.status(400).json({ message: 'Username taken' })
+    } else {
+      const hash = bcrypt.hashSync(password, 8)
+      await db('users').insert({username: username, password: hash})  
+      const [registered] = await db('users').where('username', username)
+      res.status(201).json(registered)
+    }
+  }
 
   /*
     IMPLEMENT
@@ -38,14 +47,16 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body
-  const check = await db('users').where('username', username)
+  const [check] = await db('users').where('username', username)
   if(check) {
-    const pwCheck = check.password === password ? true : false/* uses bcrpyt compare */
-    if(pwCheck) {
+    const pwCheck = bcrypt.compareSync(password, check.password)
+    if(pwCheck === true) {
       res.status(200).json({ message: 'Logged in' })
     } else {
       res.status(401).json({ message: 'Login failed' })
     }
+  } else {
+    res.status(401).json({ message: 'Login failed' })
   }
   /*
     IMPLEMENT
