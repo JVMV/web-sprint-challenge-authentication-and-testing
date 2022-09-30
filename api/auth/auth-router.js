@@ -9,7 +9,7 @@ router.post('/register', async (req, res) => {
   if(username && password) {
     const [pCheck] = await db('users').where('username', username)
     if(pCheck) {
-      res.status(400).json({ message: 'username taken' })
+      res.status(401).json({ message: 'username taken' })
     } else {
       const hash = bcrypt.hashSync(password, 8)
       await db('users').insert({username: username, password: hash})  
@@ -54,7 +54,6 @@ router.post('/login', async (req, res) => {
     const pwCheck = bcrypt.compareSync(password, check.password)
     if(pwCheck === true) {
       const token = tknBuilder(check)
-      console.log(req.headers.authorization)
       res.status(200).json({ message: `welcome, ${check.username}`, token})
     } else {
       res.status(401).json({ message: 'Invalid credentials' })
