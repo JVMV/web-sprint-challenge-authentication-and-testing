@@ -48,19 +48,55 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body
-  const [check] = await db('users').where('username', username)
-  if(check) {
-    const pwCheck = bcrypt.compareSync(password, check.password)
-    if(pwCheck === true) {
-      const token = tknBuilder(check)
-      res.status(200).json({ message: `welcome, ${check.username}`, token})
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' })
-    }
-  } else {
+  // const { username, password } = req.body
+  // const [check] = await db('users').where('username', username)
+  // if(check) {
+  //   const pwCheck = bcrypt.compareSync(password, check.password)
+  //   if(pwCheck === true) {
+  //     const token = tknBuilder(check)
+  //     res.status(200).json({ message: `welcome, ${check.username}`, token})
+  //   } else {
+  //     res.status(401).json({ message: 'Invalid credentials' })
+  //   }
+  // } else {
+  //   res.status(401).json({ message: "username and password required" })
+  // }
+
+
+
+
+
+
+  
+  if(!('username' in req.body) || !('password' in req.body)) {
     res.status(401).json({ message: "username and password required" })
-  }
+  } else {
+    const { username, password } = req.body
+    const [check] = await db('users').where('username', username)
+    if(check) {
+        const pwCheck = bcrypt.compareSync(password, check.password)
+        if(pwCheck === true) {
+          const token = tknBuilder(check)
+          res.status(200).json({ message: `welcome, ${check.username}`, token})
+        } else {
+          res.status(401).json({ message: 'Invalid credentials' })
+        }
+      } else {
+        res.status(401).json({ message: "Invalid credentials" })
+      }
+    }
+  // const [check] = await db('users').where('username', username)
+  // if(check) {
+  //   const pwCheck = bcrypt.compareSync(password, check.password)
+  //   if(pwCheck === true) {
+  //     const token = tknBuilder(check)
+  //     res.status(200).json({ message: `welcome, ${check.username}`, token})
+  //   } else {
+  //     res.status(401).json({ message: 'Invalid credentials' })
+  //   }
+  // } else {
+  //   res.status(401).json({ message: "username and password required" })
+  // }
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
