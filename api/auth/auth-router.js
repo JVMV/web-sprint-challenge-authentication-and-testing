@@ -2,20 +2,22 @@ const router = require('express').Router();
 const db = require('../../data/dbConfig');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const secret = 'a secret that would usually be in an .env file'
+const secret = 'a secret that would usually be in an .env file';
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   if(username && password) {
     const [pCheck] = await db('users').where('username', username)
     if(pCheck) {
-      res.status(400).json({ message: 'Username taken' })
+      res.status(400).json({ message: 'username taken' })
     } else {
       const hash = bcrypt.hashSync(password, 8)
       await db('users').insert({username: username, password: hash})  
       const [registered] = await db('users').where('username', username)
       res.status(201).json(registered)
     }
+  } else {
+    res.status(400).json({ message: "username and password required" })
   }
 
   /*
@@ -51,12 +53,14 @@ router.post('/login', async (req, res) => {
   if(check) {
     const pwCheck = bcrypt.compareSync(password, check.password)
     if(pwCheck === true) {
-      res.status(200).json({ message: 'Logged in' })
+      const token = tknBuilder(check)
+      console.log(req.headers.authorization)
+      res.status(200).json({ message: `welcome, ${check.username}`, token})
     } else {
-      res.status(401).json({ message: 'Login failed' })
+      res.status(401).json({ message: 'Invalid credentials' })
     }
   } else {
-    res.status(401).json({ message: 'Login failed' })
+    res.status(401).json({ message: "username and password required" })
   }
   /*
     IMPLEMENT
@@ -82,5 +86,16 @@ router.post('/login', async (req, res) => {
       the response body should include a string exactly as follows: "invalid credentials".
   */
 });
+
+function tknBuilder(user) {
+  const payload = {
+    subject: user.id,
+    username: user.username
+  }
+  const options = {
+    expiresIn: 1000 * 60
+  }
+  return jwt.sign(payload, secret, options)
+}
 
 module.exports = router;
